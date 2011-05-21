@@ -14,7 +14,11 @@ namespace c_promises
 
         public Deferred always(IEnumerable<Delegate> callbacks)
         {
-            throw new NotImplementedException();
+            foreach (Delegate callback in callbacks)
+            {
+                this.always(callback);
+            }
+            return this;
         }
 
         public Deferred done(Delegate callback)
@@ -24,7 +28,11 @@ namespace c_promises
 
         public Deferred done(IEnumerable<Delegate> callbacks)
         {
-            throw new NotImplementedException();
+            foreach (Delegate callback in callbacks)
+            {
+                this.done(callback);
+            }
+            return this;
         }
 
         public Deferred fail(Delegate callback)
@@ -34,7 +42,11 @@ namespace c_promises
 
         public Deferred fail(IEnumerable<Delegate> callbacks)
         {
-            throw new NotImplementedException();
+            foreach (Delegate callback in callbacks)
+            {
+                this.fail(callback);
+            }
+            return this;
         }
 
         public Boolean isRejected()
@@ -77,14 +89,22 @@ namespace c_promises
             throw new NotImplementedException();
         }
 
-        public Deferred then(Delegate doneCallback, Delegate failCallback)
+        public Deferred then(Delegate doneCallback = null, Delegate failCallback = null)
         {
             throw new NotImplementedException();
         }
 
-        public Deferred then(IEnumerable<Delegate> doneCallback, IEnumerable<Delegate> failCallback)
+        public Deferred then(IEnumerable<Delegate> doneCallbacks, IEnumerable<Delegate> failCallbacks)
         {
-            throw new NotImplementedException();
+            foreach (Delegate doneCallback in doneCallbacks)
+            {
+                this.then(doneCallback, null);
+            }
+            foreach (Delegate failCallback in failCallbacks)
+            {
+                this.then(null, failCallback);
+            }
+            return this;
         }
     }
 }
