@@ -7,17 +7,32 @@ namespace c_promises
 {
     public class Deferred
     {
-        public Deferred always()
+        public Deferred always(Delegate callback)
         {
             throw new NotImplementedException();
         }
 
-        public Deferred done()
+        public Deferred always(IEnumerable<Delegate> callbacks)
         {
             throw new NotImplementedException();
         }
 
-        public Deferred fail()
+        public Deferred done(Delegate callback)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Deferred done(IEnumerable<Delegate> callbacks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Deferred fail(Delegate callback)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Deferred fail(IEnumerable<Delegate> callbacks)
         {
             throw new NotImplementedException();
         }
@@ -32,7 +47,7 @@ namespace c_promises
             throw new NotImplementedException();
         }
 
-        public Deferred pipe()
+        public Deferred pipe(Delegate doneFilter = null, Delegate failFilter = null)
         {
             throw new NotImplementedException();
         }
@@ -47,12 +62,27 @@ namespace c_promises
             throw new NotImplementedException();
         }
 
+        public Deferred reject<T>(T arg)
+        {
+            throw new NotImplementedException();
+        }
+
         public Deferred resolve()
         {
             throw new NotImplementedException();
         }
 
-        public Deferred then()
+        public Deferred resolve<T>(T arg)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Deferred then(Delegate doneCallback, Delegate failCallback)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Deferred then(IEnumerable<Delegate> doneCallback, IEnumerable<Delegate> failCallback)
         {
             throw new NotImplementedException();
         }
