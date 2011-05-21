@@ -10,6 +10,7 @@ namespace c_promises
         private List<Callback> callbacks = new List<Callback>();
         private bool _isResolved = false;
         private bool _isRejected = false;
+        private object[] args = null;
 
         public Deferred always(Delegate callback)
         {
@@ -79,25 +80,35 @@ namespace c_promises
         public Deferred reject()
         {
             this._isRejected = true;
-            throw new NotImplementedException();
+            DequeueCallbacks(Callback.Condition.Fail);
+
+            return this;
         }
 
-        public Deferred reject<T>(T arg)
+        public Deferred reject(object[] args)
         {
             this._isRejected = true;
-            throw new NotImplementedException();
+            this.args = args;
+            DequeueCallbacks(Callback.Condition.Fail);
+
+            return this;
         }
 
         public Deferred resolve()
         {
             this._isResolved = true;
-            throw new NotImplementedException();
+            DequeueCallbacks(Callback.Condition.Success);
+
+            return this;
         }
 
-        public Deferred resolve<T>(T arg)
+        public Deferred resolve(object[] args)
         {
             this._isResolved = true;
-            throw new NotImplementedException();
+            this.args = args;
+            DequeueCallbacks(Callback.Condition.Success);
+
+            return this;
         }
 
         public Deferred then(Delegate doneCallback = null, Delegate failCallback = null)
@@ -119,6 +130,18 @@ namespace c_promises
                 this.then(null, failCallback);
             }
             return this;
+        }
+
+        private void DequeueCallbacks(Callback.Condition cond)
+        {
+            foreach (Callback callback in callbacks)
+            {
+                if (callback.Cond == cond || callback.Cond == Callback.Condition.Always)
+                {
+                    callback.Del.DynamicInvoke(args);
+                }
+            }
+            callbacks.Clear();
         }
 
         private class Callback
