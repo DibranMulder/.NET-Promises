@@ -5,7 +5,7 @@ using System.Text;
 
 namespace c_promises
 {
-    class Promise
+    public class Promise
     {
         public Promise then(Delegate doneCallback = null, Delegate failCallback = null)
         {

@@ -7,9 +7,14 @@ namespace c_promises
 {
     public class Deferred
     {
+        private List<Callback> callbacks = new List<Callback>();
+        private bool _isResolved = false;
+        private bool _isRejected = false;
+
         public Deferred always(Delegate callback)
         {
-            throw new NotImplementedException();
+            callbacks.Add(new Callback(callback, Callback.Condition.Always));
+            return this;
         }
 
         public Deferred always(IEnumerable<Delegate> callbacks)
@@ -23,7 +28,8 @@ namespace c_promises
 
         public Deferred done(Delegate callback)
         {
-            throw new NotImplementedException();
+            callbacks.Add(new Callback(callback, Callback.Condition.Success));
+            return this;
         }
 
         public Deferred done(IEnumerable<Delegate> callbacks)
@@ -37,7 +43,8 @@ namespace c_promises
 
         public Deferred fail(Delegate callback)
         {
-            throw new NotImplementedException();
+            callbacks.Add(new Callback(callback, Callback.Condition.Fail));
+            return this;
         }
 
         public Deferred fail(IEnumerable<Delegate> callbacks)
@@ -49,14 +56,14 @@ namespace c_promises
             return this;
         }
 
-        public Boolean isRejected()
+        public bool isRejected()
         {
-            throw new NotImplementedException();
+            return this._isRejected;
         }
 
         public Boolean isResolved()
         {
-            throw new NotImplementedException();
+            return this._isResolved;
         }
 
         public Deferred pipe(Delegate doneFilter = null, Delegate failFilter = null)
@@ -71,27 +78,34 @@ namespace c_promises
 
         public Deferred reject()
         {
+            this._isRejected = true;
             throw new NotImplementedException();
         }
 
         public Deferred reject<T>(T arg)
         {
+            this._isRejected = true;
             throw new NotImplementedException();
         }
 
         public Deferred resolve()
         {
+            this._isResolved = true;
             throw new NotImplementedException();
         }
 
         public Deferred resolve<T>(T arg)
         {
+            this._isResolved = true;
             throw new NotImplementedException();
         }
 
         public Deferred then(Delegate doneCallback = null, Delegate failCallback = null)
         {
-            throw new NotImplementedException();
+            if (doneCallback != null) { callbacks.Add(new Callback(doneCallback, Callback.Condition.Success)); }
+            if (failCallback != null) { callbacks.Add(new Callback(failCallback, Callback.Condition.Fail)); }
+
+            return this;
         }
 
         public Deferred then(IEnumerable<Delegate> doneCallbacks, IEnumerable<Delegate> failCallbacks)
@@ -105,6 +119,30 @@ namespace c_promises
                 this.then(null, failCallback);
             }
             return this;
+        }
+
+        private class Callback
+        {
+            public enum Condition { Always, Success, Fail };
+
+            private Delegate del;
+            private Condition cond;
+
+            public Callback(Delegate del, Condition cond)
+            {
+                this.del = del;
+                this.cond = cond;
+            }
+
+            public Delegate Del
+            {
+                get { return del; }
+            }
+
+            public Condition Cond
+            {
+                get { return cond; }
+            }
         }
     }
 }
