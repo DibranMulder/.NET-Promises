@@ -5,81 +5,23 @@ using System.Text;
 
 namespace c_promises
 {
-    public class Promise
+    public interface Promise
     {
-        public Promise then(Delegate doneCallback = null, Delegate failCallback = null)
-        {
-            throw new NotImplementedException();
-        }
+        Promise always(Delegate callback);
+        Promise always(IEnumerable<Delegate> callbacks);
 
-        public Promise then(IEnumerable<Delegate> doneCallbacks, IEnumerable<Delegate> failCallbacks)
-        {
-            foreach (Delegate doneCallback in doneCallbacks)
-            {
-                this.then(doneCallback, null);
-            }
-            foreach (Delegate failCallback in failCallbacks)
-            {
-                this.then(null, failCallback);
-            }
-            return this;
-        }
+        Promise done(Delegate callback);
+        Promise done(IEnumerable<Delegate> callbacks);
 
-        public Promise done(Delegate callback)
-        {
-            throw new NotImplementedException();
-        }
+        Promise fail(Delegate callback);
+        Promise fail(IEnumerable<Delegate> callbacks);
 
-        public Promise done(IEnumerable<Delegate> callbacks)
-        {
-            foreach (Delegate callback in callbacks)
-            {
-                this.done(callback);
-            }
-            return this;
-        }
+        bool isRejected();
+        bool isResolved();
 
-        public Promise fail(Delegate callback)
-        {
-            throw new NotImplementedException();
-        }
+        Promise pipe(Delegate doneFilter, Delegate failFilter);
 
-        public Promise fail(IEnumerable<Delegate> callbacks)
-        {
-            foreach (Delegate callback in callbacks)
-            {
-                this.fail(callback);
-            }
-            return this;
-        }
-
-        public Promise always(Delegate callback)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Promise always(IEnumerable<Delegate> callbacks)
-        {
-            foreach (Delegate callback in callbacks)
-            {
-                this.always(callback);
-            }
-            return this;
-        }
-
-        public Promise pipe(Delegate doneFilter = null, Delegate failFilter = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Promise isResolved()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Promise isRejected()
-        {
-            throw new NotImplementedException();
-        }
+        Promise then(Delegate doneCallback, Delegate failCallback);
+        Promise then(IEnumerable<Delegate> doneCallbacks, IEnumerable<Delegate> failCallbacks);
     }
 }

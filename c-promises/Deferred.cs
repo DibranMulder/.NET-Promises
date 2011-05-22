@@ -5,7 +5,7 @@ using System.Text;
 
 namespace c_promises
 {
-    public class Deferred
+    public class Deferred : Promise
     {
         private List<Callback> callbacks = new List<Callback>();
         private bool _isResolved = false;
@@ -62,7 +62,7 @@ namespace c_promises
             return this._isRejected;
         }
 
-        public Boolean isResolved()
+        public bool isResolved()
         {
             return this._isResolved;
         }
@@ -74,12 +74,12 @@ namespace c_promises
 
         public Promise promise()
         {
-            throw new NotImplementedException();
+            return this;
         }
 
         public Deferred reject()
         {
-            this._isRejected = true;
+            _isRejected = true;
             DequeueCallbacks(Callback.Condition.Fail);
 
             return this;
@@ -87,7 +87,7 @@ namespace c_promises
 
         public Deferred reject(object[] args)
         {
-            this._isRejected = true;
+            _isRejected = true;
             this.args = args;
             DequeueCallbacks(Callback.Condition.Fail);
 
@@ -118,7 +118,6 @@ namespace c_promises
 
             return this;
         }
-
         public Deferred then(IEnumerable<Delegate> doneCallbacks, IEnumerable<Delegate> failCallbacks)
         {
             foreach (Delegate doneCallback in doneCallbacks)
@@ -144,28 +143,18 @@ namespace c_promises
             callbacks.Clear();
         }
 
-        private class Callback
-        {
-            public enum Condition { Always, Success, Fail };
-
-            private Delegate del;
-            private Condition cond;
-
-            public Callback(Delegate del, Condition cond)
-            {
-                this.del = del;
-                this.cond = cond;
-            }
-
-            public Delegate Del
-            {
-                get { return del; }
-            }
-
-            public Condition Cond
-            {
-                get { return cond; }
-            }
-        }
+        #region Promise Accessors
+        // We need to also implement accessors using the Promise Interface because unfortunately .NET doesn't support covariant return types
+        // http://stackoverflow.com/questions/1121283/interface-not-implemented-when-returning-derived-type
+        Promise Promise.always(Delegate callback) { return (Promise)always(callback); }
+        Promise Promise.always(IEnumerable<Delegate> callbacks) { return (Promise)always(callbacks); }
+        Promise Promise.done(Delegate callback) { return (Promise)done(callback); }
+        Promise Promise.done(IEnumerable<Delegate> callbacks) { return (Promise)done(callbacks); }
+        Promise Promise.fail(Delegate callback) { return (Promise)fail(callback); }
+        Promise Promise.fail(IEnumerable<Delegate> callbacks) { return (Promise)fail(callbacks); }
+        Promise Promise.pipe(Delegate doneFilter = null, Delegate failFilter = null) { return (Promise)pipe(doneFilter, failFilter); }
+        Promise Promise.then(Delegate doneCallback = null, Delegate failCallback = null) { return (Promise)then(doneCallback, failCallback); }
+        Promise Promise.then(IEnumerable<Delegate> doneCallbacks, IEnumerable<Delegate> failCallbacks) { return (Promise)then(doneCallbacks, failCallbacks); }
+        #endregion
     }
 }
