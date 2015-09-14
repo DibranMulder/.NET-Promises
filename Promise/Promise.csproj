@@ -8,8 +8,8 @@
     <ProjectGuid>{9F4EFB5F-9C5E-4496-A36C-41D3A7CBB783}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>c_promises</RootNamespace>
-    <AssemblyName>c-promises</AssemblyName>
+    <RootNamespace>Promise</RootNamespace>
+    <AssemblyName>Promise</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
