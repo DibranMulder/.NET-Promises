@@ -7,21 +7,24 @@ namespace Promise
 {
     public interface Promise
     {
-        Promise always(Delegate callback);
-        Promise always(IEnumerable<Delegate> callbacks);
+        Promise Done(Action callback);
+        Promise Fail(Action callback);
+        Promise Always(Action callback);
 
-        Promise done(Delegate callback);
-        Promise done(IEnumerable<Delegate> callbacks);
+        bool IsRejected { get; }
+        bool IsResolved { get; }
+        bool IsFulfilled { get; }
+    }
 
-        Promise fail(Delegate callback);
-        Promise fail(IEnumerable<Delegate> callbacks);
+    public interface Promise<T> : Promise
+    {
+        Promise<T> Done(Action<T> callback);
+        Promise<T> Done(IEnumerable<Action<T>> callbacks);
 
-        bool isRejected();
-        bool isResolved();
+        Promise<T> Fail(Action<T> callback);
+        Promise<T> Fail(IEnumerable<Action<T>> callbacks);
 
-        Promise pipe(Delegate doneFilter, Delegate failFilter);
-
-        Promise then(Delegate doneCallback, Delegate failCallback);
-        Promise then(IEnumerable<Delegate> doneCallbacks, IEnumerable<Delegate> failCallbacks);
+        Promise<T> Always(Action<T> callback);
+        Promise<T> Always(IEnumerable<Action<T>> callbacks);
     }
 }

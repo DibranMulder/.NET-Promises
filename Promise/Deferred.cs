@@ -5,129 +5,191 @@ using System.Text;
 
 namespace Promise
 {
-    public class Deferred : Promise
+    public class Deferred : Deferred<object>
+    {
+        // generic object
+    }
+
+    public class Deferred<T> : Promise<T>
     {
         private List<Callback> callbacks = new List<Callback>();
-        private bool _isResolved = false;
-        private bool _isRejected = false;
-        private object[] args = null;
+        protected bool _isResolved = false;
+        protected bool _isRejected = false;
+        private T _arg;
 
-        public Deferred always(Delegate callback)
+        public static Promise When(IEnumerable<Promise> promises)
         {
-            callbacks.Add(new Callback(callback, Callback.Condition.Always));
-            return this;
-        }
+            var count = 0;
+            var masterPromise = new Deferred();
 
-        public Deferred always(IEnumerable<Delegate> callbacks)
-        {
-            foreach (Delegate callback in callbacks)
+            foreach (var p in promises)
             {
-                this.always(callback);
+                count++;
+                p.Fail(() =>
+                {
+                    masterPromise.Reject();
+                });
+                p.Done(() =>
+                {
+                    count--;
+                    if (0 == count)
+                    {
+                        masterPromise.Resolve();
+                    }
+                });
             }
-            return this;
+
+            return masterPromise;
         }
 
-        public Deferred done(Delegate callback)
+        public static Promise When(object d)
         {
-            callbacks.Add(new Callback(callback, Callback.Condition.Success));
-            return this;
+            var masterPromise = new Deferred();
+            masterPromise.Resolve();
+            return masterPromise;
         }
 
-        public Deferred done(IEnumerable<Delegate> callbacks)
+        public static Promise When(Deferred d)
         {
-            foreach (Delegate callback in callbacks)
-            {
-                this.done(callback);
-            }
-            return this;
+            return d.Promise();
         }
 
-        public Deferred fail(Delegate callback)
+        public static Promise<T> When(Deferred<T> d)
         {
-            callbacks.Add(new Callback(callback, Callback.Condition.Fail));
-            return this;
+            return d.Promise();
+
         }
 
-        public Deferred fail(IEnumerable<Delegate> callbacks)
-        {
-            foreach (Delegate callback in callbacks)
-            {
-                this.fail(callback);
-            }
-            return this;
-        }
-
-        public bool isRejected()
-        {
-            return this._isRejected;
-        }
-
-        public bool isResolved()
-        {
-            return this._isResolved;
-        }
-
-        public Deferred pipe(Delegate doneFilter = null, Delegate failFilter = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Promise promise()
+        public Promise<T> Promise()
         {
             return this;
         }
 
-        public Deferred reject()
+        public Promise Always(Action callback)
         {
+            if (_isResolved || _isRejected)
+                callback();
+            else
+                callbacks.Add(new Callback(callback, Callback.Condition.Always, false));
+            return this;
+        }
+
+        public Promise<T> Always(Action<T> callback)
+        {
+            if (_isResolved || _isRejected)
+                callback(_arg);
+            else
+                callbacks.Add(new Callback(callback, Callback.Condition.Always, true));
+            return this;
+        }
+
+        public Promise<T> Always(IEnumerable<Action<T>> callbacks)
+        {
+            foreach (Action<T> callback in callbacks)
+                this.Always(callback);
+            return this;
+        }
+
+        public Promise Done(Action callback)
+        {
+            if (_isResolved)
+                callback();
+            else
+                callbacks.Add(new Callback(callback, Callback.Condition.Success, false));
+            return this;
+        }
+
+        public Promise<T> Done(Action<T> callback)
+        {
+            if (_isResolved)
+                callback(_arg);
+            else
+                callbacks.Add(new Callback(callback, Callback.Condition.Success, true));
+            return this;
+        }
+
+        public Promise<T> Done(IEnumerable<Action<T>> callbacks)
+        {
+            foreach (Action<T> callback in callbacks)
+                this.Done(callback);
+            return this;
+        }
+
+        public Promise Fail(Action callback)
+        {
+            if (_isRejected)
+                callback();
+            else
+                callbacks.Add(new Callback(callback, Callback.Condition.Fail, false));
+            return this;
+        }
+
+        public Promise<T> Fail(Action<T> callback)
+        {
+            if (_isRejected)
+                callback(_arg);
+            else
+                callbacks.Add(new Callback(callback, Callback.Condition.Fail, true));
+            return this;
+        }
+
+        public Promise<T> Fail(IEnumerable<Action<T>> callbacks)
+        {
+            foreach (Action<T> callback in callbacks)
+                this.Fail(callback);
+            return this;
+        }
+
+        public bool IsRejected
+        {
+            get { return _isRejected; }
+        }
+
+        public bool IsResolved
+        {
+            get { return _isResolved; }
+        }
+
+        public bool IsFulfilled
+        {
+            get { return _isRejected || _isResolved; }
+        }
+
+        public Promise Reject()
+        {
+            if (_isRejected || _isResolved) // ignore if already rejected or resolved
+                return this;
             _isRejected = true;
             DequeueCallbacks(Callback.Condition.Fail);
-
             return this;
         }
 
-        public Deferred reject(object[] args)
+        public Deferred<T> Reject(T arg)
         {
+            if (_isRejected || _isResolved) // ignore if already rejected or resolved
+                return this;
             _isRejected = true;
-            this.args = args;
+            this._arg = arg;
             DequeueCallbacks(Callback.Condition.Fail);
-
             return this;
         }
 
-        public Deferred resolve()
+        public Promise Resolve()
         {
+            if (_isRejected || _isResolved) // ignore if already rejected or resolved
+                return this;
             this._isResolved = true;
             DequeueCallbacks(Callback.Condition.Success);
-
             return this;
         }
 
-        public Deferred resolve(object[] args)
+        public Deferred<T> Resolve(T arg)
         {
+            if (_isRejected || _isResolved) // ignore if already rejected or resolved
+                return this;
             this._isResolved = true;
-            this.args = args;
+            this._arg = arg;
             DequeueCallbacks(Callback.Condition.Success);
-
-            return this;
-        }
-
-        public Deferred then(Delegate doneCallback = null, Delegate failCallback = null)
-        {
-            if (doneCallback != null) { callbacks.Add(new Callback(doneCallback, Callback.Condition.Success)); }
-            if (failCallback != null) { callbacks.Add(new Callback(failCallback, Callback.Condition.Fail)); }
-
-            return this;
-        }
-        public Deferred then(IEnumerable<Delegate> doneCallbacks, IEnumerable<Delegate> failCallbacks)
-        {
-            foreach (Delegate doneCallback in doneCallbacks)
-            {
-                this.then(doneCallback, null);
-            }
-            foreach (Delegate failCallback in failCallbacks)
-            {
-                this.then(null, failCallback);
-            }
             return this;
         }
 
@@ -137,24 +199,13 @@ namespace Promise
             {
                 if (callback.Cond == cond || callback.Cond == Callback.Condition.Always)
                 {
-                    callback.Del.DynamicInvoke(args);
+                    if (callback.IsReturnValue)
+                        callback.Del.DynamicInvoke(_arg);
+                    else
+                        callback.Del.DynamicInvoke();
                 }
             }
             callbacks.Clear();
         }
-
-        #region Promise Accessors
-        // We need to also implement accessors using the Promise Interface because unfortunately .NET doesn't support covariant return types
-        // http://stackoverflow.com/questions/1121283/interface-not-implemented-when-returning-derived-type
-        Promise Promise.always(Delegate callback) { return (Promise)always(callback); }
-        Promise Promise.always(IEnumerable<Delegate> callbacks) { return (Promise)always(callbacks); }
-        Promise Promise.done(Delegate callback) { return (Promise)done(callback); }
-        Promise Promise.done(IEnumerable<Delegate> callbacks) { return (Promise)done(callbacks); }
-        Promise Promise.fail(Delegate callback) { return (Promise)fail(callback); }
-        Promise Promise.fail(IEnumerable<Delegate> callbacks) { return (Promise)fail(callbacks); }
-        Promise Promise.pipe(Delegate doneFilter, Delegate failFilter) { return (Promise)pipe(doneFilter, failFilter); }
-        Promise Promise.then(Delegate doneCallback, Delegate failCallback) { return (Promise)then(doneCallback, failCallback); }
-        Promise Promise.then(IEnumerable<Delegate> doneCallbacks, IEnumerable<Delegate> failCallbacks) { return (Promise)then(doneCallbacks, failCallbacks); }
-        #endregion
     }
 }

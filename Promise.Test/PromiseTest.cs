@@ -7,8 +7,6 @@ namespace Promise.Test
     [TestClass]
     public class PromiseTest
     {
-        private delegate void Callback();
-
         [TestMethod]
         public void ResolveTest()
         {
@@ -18,12 +16,12 @@ namespace Promise.Test
             bool doneHit = false;
             bool failHit = false;
 
-            var promise = deferred.promise();
-            promise.always(new Callback(() => alwaysHit = true));
-            promise.done(new Callback(() => doneHit = true));
-            promise.fail(new Callback(() => failHit = true));
+            var promise = deferred.Promise();
+            promise.Always(() => alwaysHit = true);
+            promise.Done(() => doneHit = true);
+            promise.Fail(() => failHit = true);
 
-            deferred.resolve();
+            deferred.Resolve();
 
             Assert.IsTrue(alwaysHit, "Always is hit");
             Assert.IsTrue(doneHit, "Done is hit");
@@ -39,12 +37,52 @@ namespace Promise.Test
             bool doneHit = false;
             bool failHit = false;
 
-            var promise = deferred.promise();
-            promise.always(new Callback(() => alwaysHit = true));
-            promise.done(new Callback(() => doneHit = true));
-            promise.fail(new Callback(() => failHit = true));
+            var promise = deferred.Promise();
+            promise.Always(() => alwaysHit = true);
+            promise.Done(() => doneHit = true);
+            promise.Fail(() => failHit = true);
 
-            deferred.reject();
+            deferred.Reject();
+
+            Assert.IsTrue(alwaysHit, "Always is hit");
+            Assert.IsFalse(doneHit, "Done is not hit");
+            Assert.IsTrue(failHit, "Fail is hit");
+        }
+        
+        [TestMethod]
+        public void ResolveFinishedTest()
+        {
+            var deferred = new Deferred();
+            deferred.Resolve();
+            var promise = deferred.Promise();
+
+            bool alwaysHit = false;
+            bool doneHit = false;
+            bool failHit = false;
+
+            promise.Always(() => alwaysHit = true);
+            promise.Done(() => doneHit = true);
+            promise.Fail(() => failHit = true);
+
+            Assert.IsTrue(alwaysHit, "Always is hit");
+            Assert.IsTrue(doneHit, "Done is hit");
+            Assert.IsFalse(failHit, "Fail is not hit");
+        }
+
+        [TestMethod]
+        public void RejectFinishedTest()
+        {
+            var deferred = new Deferred();
+            deferred.Reject();
+            var promise = deferred.Promise();
+
+            bool alwaysHit = false;
+            bool doneHit = false;
+            bool failHit = false;
+
+            promise.Always(() => alwaysHit = true);
+            promise.Done(() => doneHit = true);
+            promise.Fail(() => failHit = true);
 
             Assert.IsTrue(alwaysHit, "Always is hit");
             Assert.IsFalse(doneHit, "Done is not hit");

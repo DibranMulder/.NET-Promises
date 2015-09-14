@@ -9,23 +9,16 @@ namespace Promise
     {
         public enum Condition { Always, Success, Fail };
 
-        private Delegate del;
-        private Condition cond;
-
-        public Callback(Delegate del, Condition cond)
+        public Callback(Delegate del, Condition cond, bool returnValue)
         {
-            this.del = del;
-            this.cond = cond;
+            Del = del;
+            Cond = cond;
+            IsReturnValue = returnValue;
         }
 
-        public Delegate Del
-        {
-            get { return del; }
-        }
+        public bool IsReturnValue { get; private set; }
+        public Delegate Del { get; private set; }
+        public Condition Cond { get; private set; }
 
-        public Condition Cond
-        {
-            get { return cond; }
-        }
     }
 }
