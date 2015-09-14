@@ -10,43 +10,75 @@ namespace Promise.Test
         [TestMethod]
         public void ResolveTest()
         {
-            var deferred = new Deferred();
+            var deferred = new Deferred<string, int>();
 
             bool alwaysHit = false;
+            dynamic alwaysArg = null;
+
             bool doneHit = false;
+            string doneArg = null;
+
             bool failHit = false;
 
             var promise = deferred.Promise();
-            promise.Always(() => alwaysHit = true);
-            promise.Done(() => doneHit = true);
+            promise.Always((arg) =>
+            {
+                alwaysHit = true;
+                alwaysArg = arg;
+            });
+            promise.Done((arg) =>
+            {
+                doneHit = true;
+                doneArg = arg;
+            });
             promise.Fail(() => failHit = true);
 
-            deferred.Resolve();
+            deferred.Resolve("test");
 
             Assert.IsTrue(alwaysHit, "Always is hit");
+            Assert.AreEqual("test", alwaysArg);
+
             Assert.IsTrue(doneHit, "Done is hit");
+            Assert.AreEqual("test", doneArg);
+
             Assert.IsFalse(failHit, "Fail is not hit");
         }
 
         [TestMethod]
         public void RejectTest()
         {
-            var deferred = new Deferred();
+            var deferred = new Deferred<string, int>();
 
             bool alwaysHit = false;
+            dynamic alwaysArg = null;
+
             bool doneHit = false;
+
             bool failHit = false;
+            int? failArg = null;
 
             var promise = deferred.Promise();
-            promise.Always(() => alwaysHit = true);
+            promise.Always((arg) =>
+            {
+                alwaysHit = true;
+                alwaysArg = arg;
+            });
             promise.Done(() => doneHit = true);
-            promise.Fail(() => failHit = true);
+            promise.Fail((arg) =>
+            {
+                failHit = true;
+                failArg = arg;
+            });
 
-            deferred.Reject();
+            deferred.Reject(1337);
 
             Assert.IsTrue(alwaysHit, "Always is hit");
+            Assert.AreEqual(alwaysArg, 1337);
+
             Assert.IsFalse(doneHit, "Done is not hit");
+
             Assert.IsTrue(failHit, "Fail is hit");
+            Assert.AreEqual(failArg, 1337);
         }
         
         [TestMethod]

@@ -8,11 +8,11 @@ namespace Promise
     /// <summary>
     /// A generic object deferred
     /// </summary>
-    public class Deferred : Deferred<object>
+    public class Deferred : Deferred<object, object>
     {
     }
 
-    public class Deferred<T> : Promise<T>
+    public class Deferred<T, TFail> : Promise<T, TFail>
     {
         /// <summary>
         /// A list of registered calbacks.
@@ -32,7 +32,7 @@ namespace Promise
         /// <summary>
         /// Contains the generic argument by which the promise is fulfilled.
         /// </summary>
-        private T _arg;
+        private dynamic _arg;
 
         /// <summary>
         /// Combines an IEnumerable of promises into one promise.
@@ -68,7 +68,7 @@ namespace Promise
         /// Creates a promise of a deferred.
         /// </summary>
         /// <returns>The created promise.</returns>
-        public Promise<T> Promise()
+        public Promise<T, TFail> Promise()
         {
             return this;
         }
@@ -92,7 +92,7 @@ namespace Promise
         /// </summary>
         /// <param name="callback">A generic callback of type action</param>
         /// <returns>Itself</returns>
-        public Promise<T> Always(Action<T> callback)
+        public Promise<T, TFail> Always(Action<dynamic> callback)
         {
             if (_isResolved || _isRejected)
                 callback(_arg);
@@ -106,9 +106,9 @@ namespace Promise
         /// </summary>
         /// <param name="callbacks">A generic list of callsbacks of type action</param>
         /// <returns>Itself</returns>
-        public Promise<T> Always(IEnumerable<Action<T>> callbacks)
+        public Promise<T, TFail> Always(IEnumerable<Action<dynamic>> callbacks)
         {
-            foreach (Action<T> callback in callbacks)
+            foreach (Action<dynamic> callback in callbacks)
                 Always(callback);
             return this;
         }
@@ -132,7 +132,7 @@ namespace Promise
         /// </summary>
         /// <param name="callback">A generic callback of type action</param>
         /// <returns>Itself</returns>
-        public Promise<T> Done(Action<T> callback)
+        public Promise<T, TFail> Done(Action<T> callback)
         {
             if (_isResolved)
                 callback(_arg);
@@ -146,7 +146,7 @@ namespace Promise
         /// </summary>
         /// <param name="callbacks">A generic list of callsbacks of type action</param>
         /// <returns>Itself</returns>
-        public Promise<T> Done(IEnumerable<Action<T>> callbacks)
+        public Promise<T, TFail> Done(IEnumerable<Action<T>> callbacks)
         {
             foreach (Action<T> callback in callbacks)
                 Done(callback);
@@ -172,7 +172,7 @@ namespace Promise
         /// </summary>
         /// <param name="callback">A generic callback of type action</param>
         /// <returns>Itself</returns>
-        public Promise<T> Fail(Action<T> callback)
+        public Promise<T, TFail> Fail(Action<TFail> callback)
         {
             if (_isRejected)
                 callback(_arg);
@@ -186,9 +186,9 @@ namespace Promise
         /// </summary>
         /// <param name="callback">A generic list of callbacks of type action</param>
         /// <returns>Itself</returns>
-        public Promise<T> Fail(IEnumerable<Action<T>> callbacks)
+        public Promise<T, TFail> Fail(IEnumerable<Action<TFail>> callbacks)
         {
-            foreach (Action<T> callback in callbacks)
+            foreach (Action<TFail> callback in callbacks)
                 Fail(callback);
             return this;
         }
@@ -235,7 +235,7 @@ namespace Promise
         /// </summary>
         /// <param name="arg">A generic argument which be passed through to all callbacks.</param>
         /// <returns>Itself</returns>
-        public Deferred<T> Reject(T arg)
+        public Deferred<T, TFail> Reject(TFail arg)
         {
             if (_isRejected || _isResolved) // ignore if already rejected or resolved
                 return this;
@@ -263,7 +263,7 @@ namespace Promise
         /// </summary>
         /// <param name="arg">A generic argument which be passed through to all callbacks.</param>
         /// <returns>Itself</returns>
-        public Deferred<T> Resolve(T arg)
+        public Deferred<T, TFail> Resolve(T arg)
         {
             if (_isRejected || _isResolved) // ignore if already rejected or resolved
                 return this;
