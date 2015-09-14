@@ -5,18 +5,40 @@ using System.Text;
 
 namespace Promise
 {
+    /// <summary>
+    /// A generic object deferred
+    /// </summary>
     public class Deferred : Deferred<object>
     {
-        // generic object
     }
 
     public class Deferred<T> : Promise<T>
     {
+        /// <summary>
+        /// A list of registered calbacks.
+        /// </summary>
         private List<Callback> callbacks = new List<Callback>();
+
+        /// <summary>
+        /// States if the promise is resolved.
+        /// </summary>
         protected bool _isResolved = false;
+
+        /// <summary>
+        /// States if the promise is rejected.
+        /// </summary>
         protected bool _isRejected = false;
+
+        /// <summary>
+        /// Contains the generic argument by which the promise is fulfilled.
+        /// </summary>
         private T _arg;
 
+        /// <summary>
+        /// Combines an IEnumerable of promises into one promise.
+        /// </summary>
+        /// <param name="promises">An IEnumerable of to be fulfilled promises.</param>
+        /// <returns>A promise that is based on the given IEnumerable of promises.</returns>
         public static Promise When(IEnumerable<Promise> promises)
         {
             var count = 0;
@@ -42,29 +64,20 @@ namespace Promise
             return masterPromise;
         }
 
-        public static Promise When(object d)
-        {
-            var masterPromise = new Deferred();
-            masterPromise.Resolve();
-            return masterPromise;
-        }
-
-        public static Promise When(Deferred d)
-        {
-            return d.Promise();
-        }
-
-        public static Promise<T> When(Deferred<T> d)
-        {
-            return d.Promise();
-
-        }
-
+        /// <summary>
+        /// Creates a promise of a deferred.
+        /// </summary>
+        /// <returns>The created promise.</returns>
         public Promise<T> Promise()
         {
             return this;
         }
 
+        /// <summary>
+        /// Adds a callback to the promised fulfillment regardless if it gets rejected or resolved.
+        /// </summary>
+        /// <param name="callback">A callback of type action</param>
+        /// <returns>Itself</returns>
         public Promise Always(Action callback)
         {
             if (_isResolved || _isRejected)
@@ -74,6 +87,11 @@ namespace Promise
             return this;
         }
 
+        /// <summary>
+        /// Adds a callback to the promised fulfillment regardless if it gets rejected or resolved.
+        /// </summary>
+        /// <param name="callback">A generic callback of type action</param>
+        /// <returns>Itself</returns>
         public Promise<T> Always(Action<T> callback)
         {
             if (_isResolved || _isRejected)
@@ -83,13 +101,23 @@ namespace Promise
             return this;
         }
 
+        /// <summary>
+        /// Adds a generic list of callbacks to the promised fulfillment regardless if it gets rejected or resolved.
+        /// </summary>
+        /// <param name="callbacks">A generic list of callsbacks of type action</param>
+        /// <returns>Itself</returns>
         public Promise<T> Always(IEnumerable<Action<T>> callbacks)
         {
             foreach (Action<T> callback in callbacks)
-                this.Always(callback);
+                Always(callback);
             return this;
         }
 
+        /// <summary>
+        /// Adds a callback to the promised fulfillment but only when its resolved.
+        /// </summary>
+        /// <param name="callback">A generic callback of type action</param>
+        /// <returns>Itself</returns>
         public Promise Done(Action callback)
         {
             if (_isResolved)
@@ -99,6 +127,11 @@ namespace Promise
             return this;
         }
 
+        /// <summary>
+        /// Adds a generic callback to the promised fulfillment but only when its resolved.
+        /// </summary>
+        /// <param name="callback">A generic callback of type action</param>
+        /// <returns>Itself</returns>
         public Promise<T> Done(Action<T> callback)
         {
             if (_isResolved)
@@ -108,13 +141,23 @@ namespace Promise
             return this;
         }
 
+        /// <summary>
+        /// Adds a generic list of callbacks to the promised fulfillment but only when its resolved.
+        /// </summary>
+        /// <param name="callbacks">A generic list of callsbacks of type action</param>
+        /// <returns>Itself</returns>
         public Promise<T> Done(IEnumerable<Action<T>> callbacks)
         {
             foreach (Action<T> callback in callbacks)
-                this.Done(callback);
+                Done(callback);
             return this;
         }
 
+        /// <summary>
+        /// Adds a callback to the promised fulfillment but only when its rejected.
+        /// </summary>
+        /// <param name="callback">A callback of type action</param>
+        /// <returns>Itself</returns>
         public Promise Fail(Action callback)
         {
             if (_isRejected)
@@ -124,6 +167,11 @@ namespace Promise
             return this;
         }
 
+        /// <summary>
+        /// Adds a generic callback to the promised fulfillment but only when its rejected.
+        /// </summary>
+        /// <param name="callback">A generic callback of type action</param>
+        /// <returns>Itself</returns>
         public Promise<T> Fail(Action<T> callback)
         {
             if (_isRejected)
@@ -133,28 +181,46 @@ namespace Promise
             return this;
         }
 
+        /// <summary>
+        /// Adds a generic list of callbacks to the promised fulfillment but only when its rejected.
+        /// </summary>
+        /// <param name="callback">A generic list of callbacks of type action</param>
+        /// <returns>Itself</returns>
         public Promise<T> Fail(IEnumerable<Action<T>> callbacks)
         {
             foreach (Action<T> callback in callbacks)
-                this.Fail(callback);
+                Fail(callback);
             return this;
         }
 
+        /// <summary>
+        /// States if the promise is rejected.
+        /// </summary>
         public bool IsRejected
         {
             get { return _isRejected; }
         }
 
+        /// <summary>
+        /// States if the promise is resolved.
+        /// </summary>
         public bool IsResolved
         {
             get { return _isResolved; }
         }
 
+        /// <summary>
+        /// States if the promise is fulfilled.
+        /// </summary>
         public bool IsFulfilled
         {
             get { return _isRejected || _isResolved; }
         }
 
+        /// <summary>
+        /// Rejects the deferred and therefore invokes all registered fail callbacks.
+        /// </summary>
+        /// <returns>Itself</returns>
         public Promise Reject()
         {
             if (_isRejected || _isResolved) // ignore if already rejected or resolved
@@ -164,35 +230,53 @@ namespace Promise
             return this;
         }
 
+        /// <summary>
+        /// Rejects the deferred and therefore invokes all registered fail callbacks.
+        /// </summary>
+        /// <param name="arg">A generic argument which be passed through to all callbacks.</param>
+        /// <returns>Itself</returns>
         public Deferred<T> Reject(T arg)
         {
             if (_isRejected || _isResolved) // ignore if already rejected or resolved
                 return this;
             _isRejected = true;
-            this._arg = arg;
+            _arg = arg;
             DequeueCallbacks(Callback.Condition.Fail);
             return this;
         }
 
+        /// <summary>
+        /// Resolves the deferred and therefore invokes all registered done callbacks.
+        /// </summary>
+        /// <returns>Itself</returns>
         public Promise Resolve()
         {
             if (_isRejected || _isResolved) // ignore if already rejected or resolved
                 return this;
-            this._isResolved = true;
+            _isResolved = true;
             DequeueCallbacks(Callback.Condition.Success);
             return this;
         }
 
+        /// <summary>
+        /// Resolves the deferred and therefore invokes all registered done callbacks.
+        /// </summary>
+        /// <param name="arg">A generic argument which be passed through to all callbacks.</param>
+        /// <returns>Itself</returns>
         public Deferred<T> Resolve(T arg)
         {
             if (_isRejected || _isResolved) // ignore if already rejected or resolved
                 return this;
-            this._isResolved = true;
-            this._arg = arg;
+            _isResolved = true;
+            _arg = arg;
             DequeueCallbacks(Callback.Condition.Success);
             return this;
         }
 
+        /// <summary>
+        /// Invokes all registered callbacks if the registration matches the rejection of resolution.
+        /// </summary>
+        /// <param name="cond"></param>
         private void DequeueCallbacks(Callback.Condition cond)
         {
             foreach (Callback callback in callbacks)
