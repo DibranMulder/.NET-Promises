@@ -8,8 +8,8 @@
     <ProjectGuid>{9F4EFB5F-9C5E-4496-A36C-41D3A7CBB783}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Promise</RootNamespace>
-    <AssemblyName>Promise</AssemblyName>
+    <RootNamespace>Caesar.Promise</RootNamespace>
+    <AssemblyName>Caesar.Promise</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

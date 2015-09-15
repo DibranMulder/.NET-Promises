@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Promise.Test
+namespace Caesar.Promise.Test
 {
     [TestClass]
     public class PromiseTest
