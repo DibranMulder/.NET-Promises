@@ -1,32 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Caesar.Promise
 {
-    public interface Promise
+    /// <summary>
+    /// .Net implementation of JavaScript / JQuery promises.
+    /// </summary>
+    public interface IPromise
     {
         /// <summary>
         /// Adds a callback to the promised fulfillment but only when its resolved.
         /// </summary>
         /// <param name="callback">A generic callback of type action</param>
         /// <returns>Itself</returns>
-        Promise Done(Action callback);
+        IPromise Done(Action callback);
 
         /// <summary>
         /// Adds a callback to the promised fulfillment but only when its rejected.
         /// </summary>
         /// <param name="callback">A callback of type action</param>
         /// <returns>Itself</returns>
-        Promise Fail(Action callback);
+        IPromise Fail(Action callback);
 
         /// <summary>
         /// Adds a callback to the promised fulfillment regardless if it gets rejected or resolved.
         /// </summary>
         /// <param name="callback">A callback of type action</param>
         /// <returns>Itself</returns>
-        Promise Always(Action callback);
+        IPromise Always(Action callback);
 
         /// <summary>
         /// States if the promise is rejected.
@@ -44,48 +45,55 @@ namespace Caesar.Promise
         bool IsFulfilled { get; }
     }
 
-    public interface Promise<T, TFail> : Promise
+    /// <summary>
+    /// Generic .Net implementation of JavaScript / JQuery promises.
+    /// </summary>
+    /// <typeparam name="T">The type of Resolve argument that gets passed into the Done callbacks.</typeparam>
+    /// <typeparam name="TFail">The type of the Reject argument that gets passed into the Fail callbacks.</typeparam>
+    public interface IPromise<out T, out TFail> : IPromise
     {
         /// <summary>
         /// Adds a generic callback to the promised fulfillment but only when its resolved.
         /// </summary>
         /// <param name="callback">A generic callback of type action</param>
         /// <returns>Itself</returns>
-        Promise<T, TFail> Done(Action<T> callback);
+        IPromise<T, TFail> Done(Action<T> callback);
 
         /// <summary>
         /// Adds a generic list of callbacks to the promised fulfillment but only when its resolved.
         /// </summary>
         /// <param name="callbacks">A generic list of callsbacks of type action</param>
         /// <returns>Itself</returns>
-        Promise<T, TFail> Done(IEnumerable<Action<T>> callbacks);
+        IPromise<T, TFail> Done(IEnumerable<Action<T>> callbacks);
 
         /// <summary>
         /// Adds a generic callback to the promised fulfillment but only when its rejected.
         /// </summary>
         /// <param name="callback">A generic callback of type action</param>
         /// <returns>Itself</returns>
-        Promise<T, TFail> Fail(Action<TFail> callback);
+        IPromise<T, TFail> Fail(Action<TFail> callback);
 
         /// <summary>
         /// Adds a generic list of callbacks to the promised fulfillment but only when its rejected.
         /// </summary>
-        /// <param name="callback">A generic list of callbacks of type action</param>
-        /// <returns>Itself</returns>
-        Promise<T, TFail> Fail(IEnumerable<Action<TFail>> callbacks);
+        /// <param name="callbacks">The callbacks.</param>
+        /// <returns>
+        /// Itself
+        /// </returns>
+        IPromise<T, TFail> Fail(IEnumerable<Action<TFail>> callbacks);
 
         /// <summary>
         /// Adds a callback to the promised fulfillment regardless if it gets rejected or resolved.
         /// </summary>
         /// <param name="callback">A generic callback of type action</param>
         /// <returns>Itself</returns>
-        Promise<T, TFail> Always(Action<dynamic> callback);
+        IPromise<T, TFail> Always(Action<dynamic> callback);
 
         /// <summary>
         /// Adds a generic list of callbacks to the promised fulfillment regardless if it gets rejected or resolved.
         /// </summary>
         /// <param name="callbacks">A generic list of callsbacks of type action</param>
         /// <returns>Itself</returns>
-        Promise<T, TFail> Always(IEnumerable<Action<dynamic>> callbacks);
+        IPromise<T, TFail> Always(IEnumerable<Action<dynamic>> callbacks);
     }
 }

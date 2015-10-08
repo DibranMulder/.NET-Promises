@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Caesar.Promise
 {
@@ -12,22 +10,17 @@ namespace Caesar.Promise
     {
     }
 
-    public class Deferred<T, TFail> : Promise<T, TFail>
+    /// <summary>
+    /// A chainable utility object that can be used to register and invoke multiple callbacks to influent the flow of possibly asynchronous code.
+    /// </summary>
+    /// <typeparam name="T">The type of Resolve argument that gets passed into the Done callbacks.</typeparam>
+    /// <typeparam name="TFail">The type of the Reject argument that gets passed into the Fail callbacks.</typeparam>
+    public class Deferred<T, TFail> : IPromise<T, TFail>
     {
         /// <summary>
         /// A list of registered calbacks.
         /// </summary>
-        private List<Callback> callbacks = new List<Callback>();
-
-        /// <summary>
-        /// States if the promise is resolved.
-        /// </summary>
-        protected bool _isResolved = false;
-
-        /// <summary>
-        /// States if the promise is rejected.
-        /// </summary>
-        protected bool _isRejected = false;
+        private readonly List<Callback> _callbacks = new List<Callback>();
 
         /// <summary>
         /// Contains the generic argument by which the promise is fulfilled.
@@ -39,7 +32,7 @@ namespace Caesar.Promise
         /// </summary>
         /// <param name="promises">An IEnumerable of to be fulfilled promises.</param>
         /// <returns>A promise that is based on the given IEnumerable of promises.</returns>
-        public static Promise When(IEnumerable<Promise> promises)
+        public static IPromise When(IEnumerable<IPromise> promises)
         {
             var count = 0;
             var masterPromise = new Deferred();
@@ -53,6 +46,7 @@ namespace Caesar.Promise
                 });
                 p.Done(() =>
                 {
+                    // ReSharper disable once AccessToModifiedClosure
                     count--;
                     if (0 == count)
                     {
@@ -68,7 +62,7 @@ namespace Caesar.Promise
         /// Creates a promise of a deferred.
         /// </summary>
         /// <returns>The created promise.</returns>
-        public Promise<T, TFail> Promise()
+        public IPromise<T, TFail> Promise()
         {
             return this;
         }
@@ -78,12 +72,12 @@ namespace Caesar.Promise
         /// </summary>
         /// <param name="callback">A callback of type action</param>
         /// <returns>Itself</returns>
-        public Promise Always(Action callback)
+        public IPromise Always(Action callback)
         {
-            if (_isResolved || _isRejected)
+            if (IsResolved || IsRejected)
                 callback();
             else
-                callbacks.Add(new Callback(callback, Callback.Condition.Always, false));
+                _callbacks.Add(new Callback(callback, Callback.Condition.Always, false));
             return this;
         }
 
@@ -92,12 +86,12 @@ namespace Caesar.Promise
         /// </summary>
         /// <param name="callback">A generic callback of type action</param>
         /// <returns>Itself</returns>
-        public Promise<T, TFail> Always(Action<dynamic> callback)
+        public IPromise<T, TFail> Always(Action<dynamic> callback)
         {
-            if (_isResolved || _isRejected)
+            if (IsResolved || IsRejected)
                 callback(_arg);
             else
-                callbacks.Add(new Callback(callback, Callback.Condition.Always, true));
+                _callbacks.Add(new Callback(callback, Callback.Condition.Always, true));
             return this;
         }
 
@@ -106,9 +100,9 @@ namespace Caesar.Promise
         /// </summary>
         /// <param name="callbacks">A generic list of callsbacks of type action</param>
         /// <returns>Itself</returns>
-        public Promise<T, TFail> Always(IEnumerable<Action<dynamic>> callbacks)
+        public IPromise<T, TFail> Always(IEnumerable<Action<dynamic>> callbacks)
         {
-            foreach (Action<dynamic> callback in callbacks)
+            foreach (var callback in callbacks)
                 Always(callback);
             return this;
         }
@@ -118,12 +112,12 @@ namespace Caesar.Promise
         /// </summary>
         /// <param name="callback">A generic callback of type action</param>
         /// <returns>Itself</returns>
-        public Promise Done(Action callback)
+        public IPromise Done(Action callback)
         {
-            if (_isResolved)
+            if (IsResolved)
                 callback();
             else
-                callbacks.Add(new Callback(callback, Callback.Condition.Success, false));
+                _callbacks.Add(new Callback(callback, Callback.Condition.Success, false));
             return this;
         }
 
@@ -132,12 +126,12 @@ namespace Caesar.Promise
         /// </summary>
         /// <param name="callback">A generic callback of type action</param>
         /// <returns>Itself</returns>
-        public Promise<T, TFail> Done(Action<T> callback)
+        public IPromise<T, TFail> Done(Action<T> callback)
         {
-            if (_isResolved)
+            if (IsResolved)
                 callback(_arg);
             else
-                callbacks.Add(new Callback(callback, Callback.Condition.Success, true));
+                _callbacks.Add(new Callback(callback, Callback.Condition.Success, true));
             return this;
         }
 
@@ -146,9 +140,9 @@ namespace Caesar.Promise
         /// </summary>
         /// <param name="callbacks">A generic list of callsbacks of type action</param>
         /// <returns>Itself</returns>
-        public Promise<T, TFail> Done(IEnumerable<Action<T>> callbacks)
+        public IPromise<T, TFail> Done(IEnumerable<Action<T>> callbacks)
         {
-            foreach (Action<T> callback in callbacks)
+            foreach (var callback in callbacks)
                 Done(callback);
             return this;
         }
@@ -158,12 +152,12 @@ namespace Caesar.Promise
         /// </summary>
         /// <param name="callback">A callback of type action</param>
         /// <returns>Itself</returns>
-        public Promise Fail(Action callback)
+        public IPromise Fail(Action callback)
         {
-            if (_isRejected)
+            if (IsRejected)
                 callback();
             else
-                callbacks.Add(new Callback(callback, Callback.Condition.Fail, false));
+                _callbacks.Add(new Callback(callback, Callback.Condition.Fail, false));
             return this;
         }
 
@@ -172,23 +166,23 @@ namespace Caesar.Promise
         /// </summary>
         /// <param name="callback">A generic callback of type action</param>
         /// <returns>Itself</returns>
-        public Promise<T, TFail> Fail(Action<TFail> callback)
+        public IPromise<T, TFail> Fail(Action<TFail> callback)
         {
-            if (_isRejected)
+            if (IsRejected)
                 callback(_arg);
             else
-                callbacks.Add(new Callback(callback, Callback.Condition.Fail, true));
+                _callbacks.Add(new Callback(callback, Callback.Condition.Fail, true));
             return this;
         }
 
         /// <summary>
         /// Adds a generic list of callbacks to the promised fulfillment but only when its rejected.
         /// </summary>
-        /// <param name="callback">A generic list of callbacks of type action</param>
+        /// <param name="callbacks">A generic list of callbacks of type action</param>
         /// <returns>Itself</returns>
-        public Promise<T, TFail> Fail(IEnumerable<Action<TFail>> callbacks)
+        public IPromise<T, TFail> Fail(IEnumerable<Action<TFail>> callbacks)
         {
-            foreach (Action<TFail> callback in callbacks)
+            foreach (var callback in callbacks)
                 Fail(callback);
             return this;
         }
@@ -196,36 +190,27 @@ namespace Caesar.Promise
         /// <summary>
         /// States if the promise is rejected.
         /// </summary>
-        public bool IsRejected
-        {
-            get { return _isRejected; }
-        }
+        public bool IsRejected { get; protected set; }
 
         /// <summary>
         /// States if the promise is resolved.
         /// </summary>
-        public bool IsResolved
-        {
-            get { return _isResolved; }
-        }
+        public bool IsResolved { get; protected set; }
 
         /// <summary>
         /// States if the promise is fulfilled.
         /// </summary>
-        public bool IsFulfilled
-        {
-            get { return _isRejected || _isResolved; }
-        }
+        public bool IsFulfilled => IsRejected || IsResolved;
 
         /// <summary>
         /// Rejects the deferred and therefore invokes all registered fail callbacks.
         /// </summary>
         /// <returns>Itself</returns>
-        public Promise Reject()
+        public IPromise Reject()
         {
-            if (_isRejected || _isResolved) // ignore if already rejected or resolved
+            if (IsRejected || IsResolved) // ignore if already rejected or resolved
                 return this;
-            _isRejected = true;
+            IsRejected = true;
             DequeueCallbacks(Callback.Condition.Fail);
             return this;
         }
@@ -237,9 +222,9 @@ namespace Caesar.Promise
         /// <returns>Itself</returns>
         public Deferred<T, TFail> Reject(TFail arg)
         {
-            if (_isRejected || _isResolved) // ignore if already rejected or resolved
+            if (IsRejected || IsResolved) // ignore if already rejected or resolved
                 return this;
-            _isRejected = true;
+            IsRejected = true;
             _arg = arg;
             DequeueCallbacks(Callback.Condition.Fail);
             return this;
@@ -249,11 +234,11 @@ namespace Caesar.Promise
         /// Resolves the deferred and therefore invokes all registered done callbacks.
         /// </summary>
         /// <returns>Itself</returns>
-        public Promise Resolve()
+        public IPromise Resolve()
         {
-            if (_isRejected || _isResolved) // ignore if already rejected or resolved
+            if (IsRejected || IsResolved) // ignore if already rejected or resolved
                 return this;
-            _isResolved = true;
+            IsResolved = true;
             DequeueCallbacks(Callback.Condition.Success);
             return this;
         }
@@ -265,9 +250,9 @@ namespace Caesar.Promise
         /// <returns>Itself</returns>
         public Deferred<T, TFail> Resolve(T arg)
         {
-            if (_isRejected || _isResolved) // ignore if already rejected or resolved
+            if (IsRejected || IsResolved) // ignore if already rejected or resolved
                 return this;
-            _isResolved = true;
+            IsResolved = true;
             _arg = arg;
             DequeueCallbacks(Callback.Condition.Success);
             return this;
@@ -279,7 +264,7 @@ namespace Caesar.Promise
         /// <param name="cond"></param>
         private void DequeueCallbacks(Callback.Condition cond)
         {
-            foreach (Callback callback in callbacks)
+            foreach (var callback in _callbacks)
             {
                 if (callback.Cond == cond || callback.Cond == Callback.Condition.Always)
                 {
@@ -289,7 +274,7 @@ namespace Caesar.Promise
                         callback.Del.DynamicInvoke();
                 }
             }
-            callbacks.Clear();
+            _callbacks.Clear();
         }
     }
 }
